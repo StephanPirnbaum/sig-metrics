@@ -46,6 +46,14 @@
 		<junit-jupiter.version>5.7.2</junit-jupiter.version>
 		<ciftools.artifact>ciftools-java-jdk8</ciftools.artifact>
 		<ciftools.version>3.0.0</ciftools.version>
+
+		<!-- jQAssistant -->
+		<jqassistant.version>1.11.1</jqassistant.version>
+		<jqassistant.git-plugin.version>1.8.0</jqassistant.git-plugin.version>
+		<jqassistant.pmd-plugin.version>1.8.0</jqassistant.pmd-plugin.version>
+		<jqassistant.failOnSeverity>CRITICAL</jqassistant.failOnSeverity>
+		<pmd.version>3.15.0</pmd.version>
+		<pmd.core.version>6.38.0</pmd.core.version>
 	</properties>
 	<scm>
 		<connection>scm:git:git://github.com/biojava/biojava.git</connection>
@@ -331,6 +339,73 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>3.0.0-M1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>${pmd.version}</version>
+					<configuration>
+						<failOnViolation>false</failOnViolation>
+						<printFailingErrors>false</printFailingErrors>
+						<rulesets>
+							<ruleset>${maven.multiModuleProjectDirectory}/jqassistant-pmd-metrics.xml</ruleset>
+						</rulesets>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>pmd</goal>
+							</goals>
+							<phase>package</phase>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<groupId>net.sourceforge.pmd</groupId>
+							<artifactId>pmd-core</artifactId>
+							<version>${pmd.core.version}</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>com.buschmais.jqassistant</groupId>
+					<artifactId>jqassistant-maven-plugin</artifactId>
+					<version>${jqassistant.version}</version>
+					<executions>
+						<execution>
+							<id>default-cli</id>
+							<goals>
+								<goal>scan</goal>
+								<goal>analyze</goal>
+							</goals>
+							<configuration>
+								<groups>
+									<group>spring-boot:Default</group>
+								</groups>
+								<scanIncludes>
+									<scanInclude>
+										<path>${project.basedir}/.git</path>
+									</scanInclude>
+									<scanInclude>
+										<path>${project.build.directory}/pmd.xml</path>
+									</scanInclude>
+								</scanIncludes>
+								<failOnSeverity>${jqassistant.failOnSeverity}</failOnSeverity>
+							</configuration>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<groupId>de.kontext-e.jqassistant.plugin</groupId>
+							<artifactId>jqassistant.plugin.git</artifactId>
+							<version>${jqassistant.git-plugin.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>de.kontext-e.jqassistant.plugin</groupId>
+							<artifactId>jqassistant.plugin.pmd</artifactId>
+							<version>${jqassistant.pmd-plugin.version}</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 
 			</plugins>
@@ -664,7 +739,30 @@
 				</plugins>
 			</build>
 		</profile>
-
+		<profile>
+			<id>jQA</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-pmd-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>com.buschmais.jqassistant</groupId>
+						<artifactId>jqassistant-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<goals>
+									<goal>scan</goal>
+									<goal>analyze</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<modules>

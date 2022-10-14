@@ -1,3 +1,20 @@
+# SWP 2023 Intro
+
+Benötigte Software:
+- Java 8 (oder neuer)
+- Docker 
+
+Build:
+`mvn install -PjQA -DskipTests`
+
+Ausführen:
+`docker-compose -f jqa-docker-compose.yml up`
+
+Im Log erscheint eine URL zu Jupyter, welche `127.0.0.1` enthält.
+Nach dem öffnen im Browser erscheint eine Ordnerstruktur, dort in den Ordner `work` navigieren und die Datei `Biojava Metrics.ipynb` öffnen.
+Das geöffnete Notebook enthält noch keine Ergebnisse / Visualisierungen, zum Ausführen auf `Kernel` -> `Restart & Run All` gehen.
+Die Ergebnisse erscheinen nacheinander. Am besten einfach warten, bis die Summary-Tabellen am Ende erscheinen. 
+
 # Welcome to <img src="logo-full.png" height="35"/>
 
 ![Build](https://github.com/biojava/biojava/actions/workflows/master.yml/badge.svg)
