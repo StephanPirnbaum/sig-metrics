@@ -48,7 +48,7 @@
 		<ciftools.version>3.0.0</ciftools.version>
 
 		<!-- jQAssistant -->
-		<jqassistant.version>1.11.1</jqassistant.version>
+		<jqassistant.version>2.5.0-RC3</jqassistant.version>
 		<jqassistant.git-plugin.version>1.8.0</jqassistant.git-plugin.version>
 		<jqassistant.pmd-plugin.version>1.8.0</jqassistant.pmd-plugin.version>
 		<jqassistant.failOnSeverity>CRITICAL</jqassistant.failOnSeverity>
@@ -378,36 +378,9 @@
 								<goal>scan</goal>
 								<goal>analyze</goal>
 							</goals>
-							<configuration>
-								<groups>
-									<group>spring-boot:Default</group>
-								</groups>
-								<scanIncludes>
-									<scanInclude>
-										<path>${project.basedir}/.git</path>
-									</scanInclude>
-									<scanInclude>
-										<path>${project.build.directory}/pmd.xml</path>
-									</scanInclude>
-								</scanIncludes>
-								<failOnSeverity>${jqassistant.failOnSeverity}</failOnSeverity>
-							</configuration>
 						</execution>
 					</executions>
-					<dependencies>
-						<dependency>
-							<groupId>de.kontext-e.jqassistant.plugin</groupId>
-							<artifactId>jqassistant.plugin.git</artifactId>
-							<version>${jqassistant.git-plugin.version}</version>
-						</dependency>
-						<dependency>
-							<groupId>de.kontext-e.jqassistant.plugin</groupId>
-							<artifactId>jqassistant.plugin.pmd</artifactId>
-							<version>${jqassistant.pmd-plugin.version}</version>
-						</dependency>
-					</dependencies>
 				</plugin>
-
 			</plugins>
 		</pluginManagement>
 
@@ -750,15 +723,6 @@
 					<plugin>
 						<groupId>com.buschmais.jqassistant</groupId>
 						<artifactId>jqassistant-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>default-cli</id>
-								<goals>
-									<goal>scan</goal>
-									<goal>analyze</goal>
-								</goals>
-							</execution>
-						</executions>
 					</plugin>
 				</plugins>
 			</build>
