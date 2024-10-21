@@ -380,6 +380,14 @@
 							</goals>
 						</execution>
 					</executions>
+					<configuration>
+						<yaml>
+jqassistant:
+  analyze:
+    groups:
+      - pmd:Default
+						</yaml>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

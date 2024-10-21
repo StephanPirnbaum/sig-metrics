@@ -1,0 +1,46 @@
+<jqassistant-rules xmlns="http://schema.jqassistant.org/rule/v2.2"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://schema.jqassistant.org/rule/v2.2 https://jqassistant.github.io/jqassistant/current/schema/jqassistant-rule-v2.2.xsd">
+
+    <group id="sig:Default">
+        <includeConcept refId="sig:CreateComponentNodes"/>
+        <includeConcept refId="sig:MapTypesToComponents"/>
+        <includeConcept refId="sig:AggregateTypeDependenciesToComponentLevel"/>
+    </group>
+
+    <concept id="sig:CreateComponentNodes">
+        <requiresConcept refId="biojava:IdentifyBiojavaTypes"/>
+        <description>Create a :SIG:Component node per top-level Maven-module</description>
+        <cypher><![CDATA[
+            MATCH (m:Maven:Project{groupId: "org.biojava", artifactId: "biojava"}),
+                  (m)-[:HAS_MODULE]->(child:Maven:Project)
+            MERGE (c:Biojava:SIG:Component{name: child.name})
+            RETURN c.name AS ComponentName
+        ]]></cypher>
+    </concept>
+
+    <concept id="sig:MapTypesToComponents">
+        <requiresConcept refId="sig:CreateComponentNodes"/>
+        <description>Map all types contained directly in a component to the component</description>
+        <cypher><![CDATA[
+            MATCH  (c:Biojava:SIG:Component),
+                   (m:Maven:Project{name: c.name})-[:CREATES]->(:Biojava:Main:Artifact)-[:CONTAINS]->(t:Biojava:Type:Java)
+            MERGE  (c)-[:CONTAINS]->(t)
+            RETURN c.name AS Component, count(DISTINCT t) AS Types
+        ]]></cypher>
+    </concept>
+
+    <concept id="sig:AggregateTypeDependenciesToComponentLevel">
+        <requiresConcept refId="sig:MapTypesToComponents"/>
+        <description>Aggregate DEPENDS_ON relations between modules to components</description>
+        <cypher><![CDATA[
+            MATCH  (c1:Biojava:SIG:Component)-[:CONTAINS]->(t1:Biojava:Type:Java),
+                   (c2:Biojava:SIG:Component)-[:CONTAINS]->(t2:Biojava:Type:Java),
+                   (t1)-[d:DEPENDS_ON]->(t2)
+            WITH   c1, c2, sum(d.weight) AS weight
+            MERGE  (c1)-[d:DEPENDS_ON{weight: weight}]->(c2)
+            RETURN c1.name AS Downstream, c2.name AS Upstream
+        ]]></cypher>
+    </concept>
+
+</jqassistant-rules>

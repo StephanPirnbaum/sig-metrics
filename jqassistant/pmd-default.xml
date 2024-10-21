@@ -2,35 +2,24 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://schema.jqassistant.org/rule/v2.2 https://jqassistant.github.io/jqassistant/current/schema/jqassistant-rule-v2.2.xsd">
 
-    <group id="preparation:Default">
-        <includeConcept refId="preparation:BiojavaTypes"/>
+    <group id="pmd:Default">
         <includeConcept refId="pmd:LinkClassLevelViolations"/>
         <includeConcept refId="pmd:LinkMethodLevelViolations"/>
         <includeConcept refId="pmd:LinkMethodLevelViolationsSingleCandidate"/>
         <includeConcept refId="pmd:CopyCyclomaticComplexity"/>
         <includeConcept refId="pmd:CopyNcssLineCount"/>
-        <includeConcept refId="sig:CreateComponentNodes"/>
-        <includeConcept refId="sig:MapTypesToComponents"/>
 
         <includeConstraint refId="pmd:ClassLevelViolationNotLinked"/>
         <includeConstraint refId="pmd:MethodLevelViolationNotLinked"/>
     </group>
 
-    <concept id="preparation:BiojavaTypes">
-        <description>Markiert alle Klassen und Packages von Biojava mit :Biojava</description>
-        <cypher><![CDATA[
-            MATCH   (a:Main:Artifact)
-            WHERE   a.group STARTS WITH "org.biojava"
-            SET     a:Biojava
-            WITH    a
-            OPTIONAL MATCH (a)-[:CONTAINS]->(any)
-            SET     any:Biojava
-            RETURN  count(DISTINCT a) AS Artifacts, count(DISTINCT any) AS Elements
-        ]]></cypher>
+    <concept id="pmd:LinkViolations">
+        <requiresConcept refId="biojava:IdentifyBiojavaTypes"/>
+        <description>Link PMD Violations to source code nodes.</description>
     </concept>
 
     <concept id="pmd:LinkClassLevelViolations">
-        <requiresConcept refId="preparation:BiojavaTypes"/>
+        <providesConcept refId="pmd:LinkViolations"/>
         <description>Link PMD Violations on class level to the class nodes</description>
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation),
@@ -45,7 +34,7 @@
     </concept>
 
     <concept id="pmd:LinkMethodLevelViolations">
-        <requiresConcept refId="preparation:BiojavaTypes"/>
+        <providesConcept refId="pmd:LinkViolations"/>
         <description>Link PMD Violations on method level to the method nodes</description>
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation),
@@ -73,7 +62,7 @@
     </concept>
 
     <concept id="pmd:LinkMethodLevelViolationsSingleCandidate">
-        <requiresConcept refId="preparation:BiojavaTypes"/>
+        <providesConcept refId="pmd:LinkViolations"/>
         <description>Link PMD Violations on method level to method nodes where there is only one candidate based on the number of parameters</description>
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation),
@@ -101,9 +90,7 @@
     </concept>
 
     <concept id="pmd:CopyCyclomaticComplexity">
-        <requiresConcept refId="pmd:LinkClassLevelViolations"/>
-        <requiresConcept refId="pmd:LinkMethodLevelViolations"/>
-        <requiresConcept refId="pmd:LinkMethodLevelViolationsSingleCandidate"/>
+        <requiresConcept refId="pmd:LinkViolations"/>
         <description>Copy the PMD cyclomatic complexity of the class to the type node</description>
         <cypher><![CDATA[
             MATCH  (j:Java)-[:HAS_VIOLATION]->(v:Pmd:Violation{rule: "CyclomaticComplexity"})
@@ -118,9 +105,7 @@
     </concept>
 
     <concept id="pmd:CopyNcssLineCount">
-        <requiresConcept refId="pmd:LinkClassLevelViolations"/>
-        <requiresConcept refId="pmd:LinkMethodLevelViolations"/>
-        <requiresConcept refId="pmd:LinkMethodLevelViolationsSingleCandidate"/>
+        <requiresConcept refId="pmd:LinkViolations"/>
         <description>Copy the PMD ncss line count of the class to the type node</description>
         <cypher><![CDATA[
             MATCH (j:Java)-[:HAS_VIOLATION]->(v:Pmd:Violation{rule: "NcssCount"})
@@ -132,41 +117,6 @@
         <verify>
             <aggregation/>
         </verify>
-    </concept>
-
-    <concept id="sig:CreateComponentNodes">
-        <requiresConcept refId="preparation:BiojavaTypes"/>
-        <description>Create a :SIG:Component node per top-level Maven-module</description>
-        <cypher><![CDATA[
-            MATCH (m:Maven:Project{groupId: "org.biojava", artifactId: "biojava"}),
-                  (m)-[:HAS_MODULE]->(child:Maven:Project)
-            MERGE (c:Biojava:SIG:Component{name: child.name})
-            RETURN c.name AS ComponentName
-        ]]></cypher>
-    </concept>
-
-    <concept id="sig:MapTypesToComponents">
-        <requiresConcept refId="sig:CreateComponentNodes"/>
-        <description>Map all types contained directly in a component to the component</description>
-        <cypher><![CDATA[
-            MATCH  (c:Biojava:SIG:Component),
-                   (m:Maven:Project{name: c.name})-[:CREATES]->(:Biojava:Main:Artifact)-[:CONTAINS]->(t:Biojava:Type:Java)
-            MERGE  (c)-[:CONTAINS]->(t)
-            RETURN c.name AS Component, count(DISTINCT t) AS Types
-        ]]></cypher>
-    </concept>
-
-    <concept id="sig:AggregateTypeDependenciesToComponentLevel">
-        <requiresConcept refId="sig:MapTypesToComponents"/>
-        <description>Aggregate DEPENDS_ON relations between modules to components</description>
-        <cypher><![CDATA[
-            MATCH  (c1:Biojava:SIG:Component)-[:CONTAINS]->(t1:Biojava:Type:Java),
-                   (c2:Biojava:SIG:Component)-[:CONTAINS]->(t2:Biojava:Type:Java),
-                   (t1)-[d:DEPENDS_ON]->(t2)
-            WITH   c1, c2, sum(d.weight) AS weight
-            MERGE  (c1)-[d:DEPENDS_ON{weight: weight}]->(c2)
-            RETURN c1.name AS Downstream, c2.name AS Upstream
-        ]]></cypher>
     </concept>
 
     <constraint id="pmd:ClassLevelViolationNotLinked">

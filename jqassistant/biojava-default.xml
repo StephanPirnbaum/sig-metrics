@@ -1,0 +1,26 @@
+<jqassistant-rules xmlns="http://schema.jqassistant.org/rule/v2.2"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://schema.jqassistant.org/rule/v2.2 https://jqassistant.github.io/jqassistant/current/schema/jqassistant-rule-v2.2.xsd">
+
+    <group id="biojava:Default">
+        <includeConcept refId="biojava:IdentifyBiojavaTypes"/>
+
+        <includeGroup refId="junit5:Default"/> <!-- Rules are part of the jQAssistant core distribution -->
+        <includeGroup refId="pmd:Default"/>
+        <includeGroup refId="sig:Default"/>
+    </group>
+
+    <concept id="biojava:IdentifyBiojavaTypes">
+        <description>Markiert alle Klassen und Packages von Biojava mit :Biojava</description>
+        <cypher><![CDATA[
+            MATCH   (a:Main:Artifact)
+            WHERE   a.group STARTS WITH "org.biojava"
+            SET     a:Biojava
+            WITH    a
+            OPTIONAL MATCH (a)-[:CONTAINS]->(any)
+            SET     any:Biojava
+            RETURN  count(DISTINCT a) AS Artifacts, count(DISTINCT any) AS Elements
+        ]]></cypher>
+    </concept>
+
+</jqassistant-rules>

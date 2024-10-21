@@ -1,16 +1,12 @@
 jqassistant:
   plugins:
-    #- group-id: de.kontext-e.jqassistant.plugin
-    #  artifact-id: jqassistant.plugin.git
-    #  version: 2.1.0
     - group-id: de.kontext-e.jqassistant.plugin
       artifact-id: jqassistant.plugin.pmd
       version: 2.1.0
   scan:
     include:
       files:
-    #    - ${project.basedir}/.git
         - ${project.build.directory}/pmd.xml
   analyze:
     groups:
-      - preparation:Default
+      - biojava:Default
