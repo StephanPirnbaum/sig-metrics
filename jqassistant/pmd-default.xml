@@ -24,7 +24,7 @@
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation),
                    (t:Biojava:Type:Java{fqn: v.package + "." + v.className})
-            WHERE  NOT exists(v.method)
+            WHERE  v.method IS NULL
             MERGE  (t)-[:HAS_VIOLATION]->(v)
             RETURN count(DISTINCT t) AS LinkedTypes
         ]]></cypher>
@@ -124,7 +124,7 @@
         <description>Sanity check to see that all class violations were mapped to class nodes</description>
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation)
-            WHERE  NOT exists(v.method) AND NOT (:Type)-[:HAS_VIOLATION]->(v)
+            WHERE  v.method IS NULL AND NOT (:Type)-[:HAS_VIOLATION]->(v)
             RETURN v.package AS Package, v.className AS Class, v.message AS Violation
         ]]></cypher>
     </constraint>
@@ -135,7 +135,7 @@
         <description>Sanity check to see that all method violations were mapped to method nodes</description>
         <cypher><![CDATA[
             MATCH  (v:Pmd:Violation)
-            WHERE  exists(v.method) AND NOT (:Method)-[:HAS_VIOLATION]->(v)
+            WHERE  v.method IS NOT NULL AND NOT (:Method)-[:HAS_VIOLATION]->(v)
             RETURN v.package AS Package, v.className AS Class, v.method AS Method, v.message AS Violation
         ]]></cypher>
     </constraint>
